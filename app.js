@@ -11,3 +11,7 @@ var request = https.get("https://teamtreehouse.com/" + username + ".json",
 function(response) {
   console.log(response.statusCode);
 });
+
+request.on("error", function(err) {
+  console.error(err.message);
+});
