@@ -32,6 +32,11 @@ function user(req, res) {
       res.write(values.username + " has " + values.badgeCount + " badges\n");
       res.end("Footer\n");
     });
+    studentProfile.on("error", function(err) {
+      // Show error.
+      res.write(err.message + "\n");
+      res.end("Footer\n");
+    });
   }
 }
 
