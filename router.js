@@ -1,3 +1,5 @@
+var Profile = require("./profile.js");
+
 function home(req, res) {
   res.statusCode = 200;
   res.writeHead(200, {'Content-Type': 'text/plain'});
@@ -13,8 +15,23 @@ function user(req, res) {
     res.statusCode = 200;
     res.writeHead(200, {'Content-Type': 'text/plain'});
     res.write("Header\n");
-    res.write(username + "\n");
-    res.end("Footer\n");
+
+    var studentProfile = new Profile(username);
+    studentProfile.on("end", function(profileJSON) {
+      // Show profile.
+
+      // Store the values that we need.
+      var values = {
+        avatarUrl: profileJSON.gravatar_url,
+        username: profileJSON.profile_name,
+        badgeCount: profileJSON.badges.length,
+        jsPoints: profileJSON.points.JavaScript
+      };
+
+      // Response
+      res.write(values.username + " has " + values.badgeCount + " badges\n");
+      res.end("Footer\n");
+    });
   }
 }
 
