@@ -1,48 +1,51 @@
-var http = require("http");
+var EventEmitter = require("events").EventEmitter;
 var https = require("https");
+var http = require("http");
+var util = require("util");
 
-// Print out message
-function printMessage(username, badgeCount, points) {
-  var message = username + " has " + badgeCount + " total badge(s) and " +
-  points + " points in JavaScript";
-  console.log(message);
-}
+/**
+ * An EventEmitter to get a Treehouse students profile.
+ * @param username
+ * @constructor
+ */
+function Profile(username) {
 
-// Print out error messages
-function printError(err) {
-  console.error(err.message);
-}
+    EventEmitter.call(this);
 
-function get(username) {
-  var request = https.get("https://teamtreehouse.com/" + username + ".json",
-  function(response) {
-    var body = "";
-    response.on("data", function(chunk) {
-      body += chunk;
+    var profileEmitter = this;
+
+    //Connect to the API URL (https://teamtreehouse.com/username.json)
+    var request = https.get("https://teamtreehouse.com/" + username + ".json", function(response) {
+        var body = "";
+
+        if (response.statusCode !== 200) {
+            request.abort();
+            //Status Code Error
+            profileEmitter.emit("error", new Error("There was an error getting the profile for " + username + ". (" + http.STATUS_CODES[response.statusCode] + ")"));
+        }
+
+        //Read the data
+        response.on('data', function (chunk) {
+            body += chunk;
+            profileEmitter.emit("data", chunk);
+        });
+
+        response.on('end', function () {
+            if(response.statusCode === 200) {
+                try {
+                    //Parse the data
+                    var profile = JSON.parse(body);
+                    profileEmitter.emit("end", profile);
+                } catch (error) {
+                    profileEmitter.emit("error", error);
+                }
+            }
+        }).on("error", function(error){
+            profileEmitter.emit("error", error);
+        });
     });
-    response.on("end", function() {
-      if (response.statusCode == 200) {
-        try {
-          // Parse the data
-          var profile = JSON.parse(body);
-        } catch (err) {
-          // Parse error.
-          printError(err);
-        } // End catch.
-        printMessage(username, profile.badges.length, profile.points.JavaScript);
-      } else {
-        // Status code error.
-        printError({message: "There was an error getting the profile for " +
-        username + " (" + http.STATUS_CODES[response.statusCode] + ")."});
-      } // End if/else statusCode check.
-    }); // End response.on().
-  }); // End https.get().
-  
-  // Handle errors
-  // Connection error
-  request.on("error", function(err) {
-    printError(err);
-  });
-} // End get().
+}
 
-module.exports.get = get;
+util.inherits( Profile, EventEmitter );
+
+module.exports = Profile;
