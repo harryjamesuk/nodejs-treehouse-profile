@@ -1,15 +1,23 @@
 var Profile = require("./profile.js");
 var renderer = require("./renderer.js");
+var queryString = require("querystring");
 
 var commonHeaders = {'Content-Type': 'text/html'};
 
 function home(req, res) {
-  res.statusCode = 200;
-  res.writeHead(200, commonHeaders);
-  renderer.view("header", {}, res);
-  renderer.view("search", {}, res);
-  renderer.view("footer", {}, res);
-  res.end();
+  if (req.method.toUpperCase() === "GET") {
+    res.writeHead(200, commonHeaders);
+    renderer.view("header", {}, res);
+    renderer.view("search", {}, res);
+    renderer.view("footer", {}, res);
+    res.end();
+  } else {
+    req.on("data", function(postBody) {
+      var query = queryString.parse(postBody.toString());
+      res.write(query.username);
+      res.end();
+    });
+  }
 }
 
 function user(req, res) {
