@@ -14,7 +14,7 @@ function home(req, res) {
   } else {
     req.on("data", function(postBody) {
       var query = queryString.parse(postBody.toString());
-      res.write(query.username);
+      res.writeHead(303, {"Location": "/" + query.username });
       res.end();
     });
   }
