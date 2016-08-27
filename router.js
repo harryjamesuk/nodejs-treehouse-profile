@@ -1,11 +1,15 @@
 var Profile = require("./profile.js");
+var renderer = require("./renderer.js");
+
+var commonHeaders = {'Content-Type': 'text/html'};
 
 function home(req, res) {
   res.statusCode = 200;
-  res.writeHead(200, {'Content-Type': 'text/plain'});
-  res.write("Header\n");
-  res.write("Search\n");
-  res.end("Footer\n");
+  res.writeHead(200, commonHeaders);
+  renderer.view("header", {}, res);
+  renderer.view("search", {}, res);
+  renderer.view("footer", {}, res);
+  res.end();
 }
 
 function user(req, res) {
@@ -13,8 +17,8 @@ function user(req, res) {
   if (username.length > 0) {
     // Exists
     res.statusCode = 200;
-    res.writeHead(200, {'Content-Type': 'text/plain'});
-    res.write("Header\n");
+    res.writeHead(200, commonHeaders);
+    renderer.view("header", {}, res);
 
     var studentProfile = new Profile(username);
     studentProfile.on("end", function(profileJSON) {
@@ -29,13 +33,16 @@ function user(req, res) {
       };
 
       // Response
-      res.write(values.username + " has " + values.badgeCount + " badges\n");
-      res.end("Footer\n");
+      renderer.view("profile", values, res);
+      renderer.view("footer", values, res);
+      res.end();
     });
     studentProfile.on("error", function(err) {
       // Show error.
-      res.write(err.message + "\n");
-      res.end("Footer\n");
+      renderer.view("error", {errorMsg: err.message}, res);
+      renderer.view("search", {}, res);
+      renderer.view("footer", {}, res);
+      res.end();
     });
   }
 }
